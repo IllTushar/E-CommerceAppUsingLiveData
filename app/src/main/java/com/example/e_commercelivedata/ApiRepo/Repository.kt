@@ -5,7 +5,7 @@ import com.example.e_commercelivedata.Network.ApiService
 import javax.inject.Inject
 
 class Repository @Inject constructor(val apiService: ApiService) {
-    suspend fun repoCall(): List<ProductResponseClass> {
+    suspend fun productCacheRepo(): List<ProductResponseClass> {
         return apiService.getAllProducts()
     }
 }

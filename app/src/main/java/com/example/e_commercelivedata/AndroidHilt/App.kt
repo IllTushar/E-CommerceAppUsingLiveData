@@ -27,7 +27,7 @@ class App : Application() {
         super.onCreate()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val products = repository.repoCall()
+                val products = repository.productCacheRepo()
                 insertDataInRoomDb(products)
             } catch (e: Exception) {
                 e.printStackTrace()

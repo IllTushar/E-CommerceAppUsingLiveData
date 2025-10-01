@@ -29,7 +29,7 @@ class productCacheViewModel @Inject constructor(val repository: Repository) : Vi
         viewModelScope.launch {
             _loading.value = true
             try {
-                val responseData = repository.repoCall()
+                val responseData = repository.productCacheRepo()
                 _response.value = responseData
             } catch (e: Exception) {
                 e.printStackTrace()
