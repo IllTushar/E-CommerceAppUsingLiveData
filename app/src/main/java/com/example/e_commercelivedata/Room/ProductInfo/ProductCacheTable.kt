@@ -13,5 +13,6 @@ data class ProductCacheTable(
     val category: String,
     val imageURI: String,
     val ratingCount: Float,
-    val totalQuantity: Int
+    val totalQuantity: Int,
+    var quantity: Int = 0
 )
