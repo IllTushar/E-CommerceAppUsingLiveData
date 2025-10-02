@@ -4,8 +4,8 @@ import android.app.Application
 import com.example.e_commercelivedata.ApiRepo.Repository
 import com.example.e_commercelivedata.HomePage.data.ProductResponseClass
 
-import com.example.e_commercelivedata.Room.ProductInfo.ProductCacheTable
-import com.example.e_commercelivedata.Room.ProductInfo.ProductQueries
+import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
+import com.example.e_commercelivedata.Room.Queries.Queries
 
 
 import dagger.hilt.android.HiltAndroidApp
@@ -21,7 +21,7 @@ class App : Application() {
     lateinit var repository: Repository
 
     @Inject
-    lateinit var dao: ProductQueries
+    lateinit var dao: Queries
 
     override fun onCreate() {
         super.onCreate()
@@ -37,16 +37,16 @@ class App : Application() {
 
     private suspend fun insertDataInRoomDb(products: List<ProductResponseClass>) {
         dao.deleteAllProductCache()
-        val response: List<ProductCacheTable> = products.map { product ->
-            ProductCacheTable(
-                id = product.id,
+        val response: List<ProductCacheEntity> = products.map { product ->
+            ProductCacheEntity(
+                productId = product.id,
                 title = product.title,
                 description = product.description,
                 price = product.price,
                 category = product.category,
                 imageURI = product.image,
                 ratingCount = product.rating.rate,
-                totalQuantity = product.rating.count
+                totalQuantity = product.rating.count,
             )
         }
         dao.insertAllProduct(response)

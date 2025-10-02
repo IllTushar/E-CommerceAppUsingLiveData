@@ -8,96 +8,128 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.e_commercelivedata.R
-import com.example.e_commercelivedata.Room.ProductInfo.ProductCacheTable
+import com.example.e_commercelivedata.Room.Cart.CartEntity
+import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
+import com.example.e_commercelivedata.Room.Queries.Queries
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class HomePageProductLayoutAdapter(val context: Context, val productList: List<ProductCacheTable>) :
-    RecyclerView.Adapter<HomePageProductLayoutAdapter.myViewHolder>() {
+class HomePageProductLayoutAdapter(
+    private val context: Context,
+    private val productList: MutableList<ProductCacheEntity>,
+    private val dao: Queries,
+    private var cartMap: MutableMap<Int, Int> = mutableMapOf()
+) : RecyclerView.Adapter<HomePageProductLayoutAdapter.MyViewHolder>() {
 
-
-    class myViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.findViewById(R.id.title)
         val category: TextView = itemView.findViewById(R.id.category)
         val productImage: ImageView = itemView.findViewById(R.id.imageView)
         val price: TextView = itemView.findViewById(R.id.price)
         val addToCart: AppCompatButton = itemView.findViewById(R.id.addToCart)
         val productQuantityLayout: ConstraintLayout =
-            itemView.findViewById(R.id.productQuantityLayout);
+            itemView.findViewById(R.id.productQuantityLayout)
         val add: TextView = itemView.findViewById(R.id.productAdd)
         val subtract: TextView = itemView.findViewById(R.id.productDecrease)
         val productQuantity: TextView = itemView.findViewById(R.id.productQuantity)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): myViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
         val view =
             LayoutInflater.from(context).inflate(R.layout.product_single_row_xml, parent, false)
-        return myViewHolder(view)
+        return MyViewHolder(view)
     }
 
-    override fun getItemCount(): Int {
-        return productList.size
-    }
+    override fun getItemCount(): Int = productList.size
 
-
-    override fun onBindViewHolder(holder: myViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val product = productList[position]
 
+        // Load product info
+        holder.title.text = product.title.uppercase()
+        holder.category.text = product.category.uppercase()
         holder.price.text = "$ ${product.price}"
+
         Glide.with(context)
             .load(product.imageURI)
             .placeholder(R.drawable.baseline_search_24)
             .into(holder.productImage)
 
-        holder.title.text = "Title: ${product.title.uppercase()}"
-        holder.category.text = "Category: ${product.category.uppercase()}"
+        // Get current quantity from cartMap
+        var temp = cartMap[product.productId] ?: 0
 
-        // Set visibility based on selectedQuantity
-        if (product.quantity > 0) {
+        // Set UI based on quantity
+        if (temp > 0) {
             holder.addToCart.visibility = View.GONE
             holder.productQuantityLayout.visibility = View.VISIBLE
-            holder.productQuantity.text = product.quantity.toString()
+            holder.productQuantity.text = temp.toString()
         } else {
             holder.addToCart.visibility = View.VISIBLE
             holder.productQuantityLayout.visibility = View.GONE
         }
 
+        // Add button click
         holder.add.setOnClickListener {
-            if (product.quantity < product.totalQuantity) {
-                product.quantity += 1
-                productList[position].quantity = product.quantity
-                holder.productQuantity.text = product.quantity.toString()
-                notifyItemChanged(position)
+            if (temp < product.totalQuantity) {
+                temp += 1
+                cartMap[product.productId] = temp
+                holder.productQuantity.text = temp.toString()
+                updateCartInDB(product.productId, temp)
             }
         }
 
+        // Subtract button click
         holder.subtract.setOnClickListener {
-            if (product.quantity > 1) {
-                product.quantity -= 1
-                productList[position].quantity = product.quantity
-                holder.productQuantity.text = product.quantity.toString()
-                notifyItemChanged(position)
-            } else if (product.quantity == 1) {
-                product.quantity = 0
-                productList[position].quantity = product.quantity
+            if (temp > 1) {
+                temp -= 1
+                cartMap[product.productId] = temp
+                holder.productQuantity.text = temp.toString()
+                updateCartInDB(product.productId, temp)
+            } else if (temp == 1) {
+                temp = 0
+                cartMap.remove(product.productId)
                 holder.productQuantityLayout.visibility = View.GONE
                 holder.addToCart.visibility = View.VISIBLE
-                notifyItemChanged(position)
+                removeFromCartInDB(product.productId)
             }
         }
 
-
+        // Add to cart click
         holder.addToCart.setOnClickListener {
             if (product.totalQuantity > 0) {
-                product.quantity = 1
-                productList[position].quantity = product.quantity
+                temp = 1
+                cartMap[product.productId] = 1
                 holder.addToCart.visibility = View.GONE
                 holder.productQuantityLayout.visibility = View.VISIBLE
                 holder.productQuantity.text = "1"
-                notifyItemChanged(position)
+                updateCartInDB(product.productId, 1)
             }
         }
     }
+
+
+
+
+
+
+    private fun removeFromCartInDB(productId: Int) {
+        (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+            dao.deleteProduct(productId)
+        }
+    }
+
+    private fun updateCartInDB(productId: Int, quantity: Int) {
+        val cartItem = CartEntity(productId = productId, cartQuantity = quantity)
+        (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+            dao.insertCartItems(cartItem)
+        }
+    }
+
 
 }

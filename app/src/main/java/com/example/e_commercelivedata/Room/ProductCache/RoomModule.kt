@@ -1,6 +1,8 @@
-package com.example.e_commercelivedata.Room.ProductInfo
+package com.example.e_commercelivedata.Room.ProductCache
 
 import android.app.Application
+import com.example.e_commercelivedata.Room.Database.CreateRoomDB
+import com.example.e_commercelivedata.Room.Queries.Queries
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +20,7 @@ class RoomModule {
 
     @Provides
     @Singleton
-    fun provideProductQueries(db: CreateRoomDB): ProductQueries {
-        return db.ProductQueries()
+    fun provideProductQueries(db: CreateRoomDB): Queries {
+        return db.queries()
     }
 }

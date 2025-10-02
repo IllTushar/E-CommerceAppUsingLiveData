@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+
+    kotlin("plugin.noarg") version "2.0.21"
+}
+
+noArg {
+    annotation("androidx.room.Entity")  // If you're using Room
 }
 
 android {
