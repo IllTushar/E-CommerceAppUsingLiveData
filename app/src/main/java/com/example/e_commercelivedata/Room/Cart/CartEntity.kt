@@ -8,6 +8,15 @@ import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
 
 @Entity(
     tableName = "cart",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProductCacheEntity::class,
+            parentColumns = ["productId"],
+            childColumns = ["productId"],
+            onDelete = ForeignKey.NO_ACTION
+        )
+    ],
+    indices = [Index("productId")]
 )
 data class CartEntity(
     @PrimaryKey

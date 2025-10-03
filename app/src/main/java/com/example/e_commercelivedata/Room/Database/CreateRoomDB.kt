@@ -34,7 +34,7 @@ abstract class CreateRoomDB : RoomDatabase() {
                 `productId` INTEGER NOT NULL,
                 `cartQuantity` INTEGER NOT NULL,
                 FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`)
-                ON DELETE CASCADE
+                ON DELETE NO ACTION
             )
             """.trimIndent()
                 )
@@ -51,7 +51,7 @@ abstract class CreateRoomDB : RoomDatabase() {
             CREATE TABLE IF NOT EXISTS `wishlist` (
                 `productId` INTEGER NOT NULL,
                 PRIMARY KEY(`productId`),
-                FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`) ON DELETE CASCADE
+                FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`) ON DELETE NO ACTION
             )
             """.trimIndent()
                 )

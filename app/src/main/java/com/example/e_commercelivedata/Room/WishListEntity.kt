@@ -13,7 +13,7 @@ import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
             entity = ProductCacheEntity::class,
             parentColumns = ["productId"],
             childColumns = ["productId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [Index("productId")]
