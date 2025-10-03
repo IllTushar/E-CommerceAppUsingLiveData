@@ -16,9 +16,11 @@ import com.example.e_commercelivedata.R
 import com.example.e_commercelivedata.Room.Cart.CartEntity
 import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
 import com.example.e_commercelivedata.Room.Queries.Queries
+import com.example.e_commercelivedata.Room.WishListEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomePageProductLayoutAdapter(
     private val context: Context,
@@ -38,6 +40,7 @@ class HomePageProductLayoutAdapter(
         val add: TextView = itemView.findViewById(R.id.productAdd)
         val subtract: TextView = itemView.findViewById(R.id.productDecrease)
         val productQuantity: TextView = itemView.findViewById(R.id.productQuantity)
+        val saveItem: ImageView = itemView.findViewById(R.id.save_item)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
@@ -64,6 +67,41 @@ class HomePageProductLayoutAdapter(
         // Get current quantity from cartMap
         var temp = cartMap[product.productId] ?: 0
 
+
+        (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+            val isInWishList = checkProductItemPresent(productId = product.productId)
+            withContext(Dispatchers.Main) {
+                if (isInWishList) {
+                    Glide.with(context).load(R.drawable.filled_heart).into(holder.saveItem)
+                } else {
+                    Glide.with(context).load(R.drawable.un_filled_heart).into(holder.saveItem)
+                }
+            }
+        }
+
+
+
+        holder.saveItem.setOnClickListener {
+            (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+                val isInWishlist = checkProductItemPresent(productId = product.productId)
+
+                // Switch to Main thread for UI updates
+                withContext(Dispatchers.Main) {
+                    if (isInWishlist) {
+                        Glide.with(context).load(R.drawable.un_filled_heart).into(holder.saveItem)
+                    } else {
+                        Glide.with(context).load(R.drawable.filled_heart).into(holder.saveItem)
+                    }
+                }
+
+                // Back to IO thread for database operation
+                if (isInWishlist) {
+                    removerItemFromWishList(productId = product.productId)
+                } else {
+                    addWishList(productId = product.productId)
+                }
+            }
+        }
         // Set UI based on quantity
         if (temp > 0) {
             holder.addToCart.visibility = View.GONE
@@ -114,9 +152,24 @@ class HomePageProductLayoutAdapter(
     }
 
 
+    private fun removerItemFromWishList(productId: Int) {
+        (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+            dao.removeFromWishList(productId)
+        }
+    }
 
+    private suspend fun checkProductItemPresent(productId: Int): Boolean {
+        return withContext(Dispatchers.IO) {
+            dao.getWishListItem(productId)
+        }
+    }
 
-
+    private fun addWishList(productId: Int) {
+        val wishlist = WishListEntity(productId)
+        (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {
+            dao.insertIntoWishList(wishlist)
+        }
+    }
 
     private fun removeFromCartInDB(productId: Int) {
         (context as? LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) {

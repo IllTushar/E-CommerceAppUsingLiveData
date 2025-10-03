@@ -5,7 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
-
 @Entity(
     tableName = "wishlist",
     foreignKeys = [
@@ -20,5 +19,5 @@ import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
 )
 data class WishListEntity(
     @PrimaryKey
-    val productId: Int
+    val productId: Int = 0  // Add default value here
 )

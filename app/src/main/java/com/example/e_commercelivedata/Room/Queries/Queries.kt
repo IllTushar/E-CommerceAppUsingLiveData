@@ -37,4 +37,10 @@ interface Queries {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIntoWishList(wishlistItem: WishListEntity)
 
+    @Query("DELETE FROM wishlist WHERE productId = :productId")  // Changed to DELETE
+    suspend fun removeFromWishList(productId: Int)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM wishlist WHERE productId = :productId)")
+    suspend fun getWishListItem(productId: Int): Boolean
+
 }
