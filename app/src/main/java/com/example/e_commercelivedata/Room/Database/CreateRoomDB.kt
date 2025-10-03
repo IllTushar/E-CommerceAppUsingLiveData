@@ -30,7 +30,6 @@ abstract class CreateRoomDB : RoomDatabase() {
                 database.execSQL(
                     """
             CREATE TABLE IF NOT EXISTS `cart` (
-                `cartId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `productId` INTEGER NOT NULL,
                 `cartQuantity` INTEGER NOT NULL,
                 FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`)

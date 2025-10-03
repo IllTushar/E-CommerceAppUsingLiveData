@@ -38,31 +38,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadProductsAndCart() {
-        lifecycleScope.launch(Dispatchers.IO) {
 
+        dao.getAllUser().observe(this@MainActivity, { products ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                val cartList = dao.getProductsInCart()
+                val cartMap = cartList.associate { it.productId to it.cartQuantity }.toMutableMap()
 
-            val products = dao.getAllUser() // Load products
-            val cartList = dao.getProductsInCart() // Load cart
-
-            val cartMap = cartList.associate { it.productId to it.cartQuantity }.toMutableMap()
-
-            // prevent the raised condition
-            withContext(Dispatchers.Main) {
-                if (products.isEmpty()) {
-                    // Show loading until API populates DB
-                    binding.progressBar.visibility = View.VISIBLE
-                } else {
-                    binding.progressBar.visibility = View.GONE
-                    adapter = HomePageProductLayoutAdapter(
-                        this@MainActivity,
-                        products.toMutableList(),
-                        dao,
-                        cartMap
-                    )
-                    binding.productList.adapter = adapter
+                withContext(Dispatchers.Main) {
+                    if (products.isEmpty()) {
+                        // Show loading until API populates DB
+                        binding.progressBar.visibility = View.VISIBLE
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                        adapter = HomePageProductLayoutAdapter(
+                            this@MainActivity,
+                            products.toMutableList(),
+                            dao,
+                            cartMap
+                        )
+                        binding.productList.adapter = adapter
+                    }
                 }
             }
-        }
+        })
     }
 
 }

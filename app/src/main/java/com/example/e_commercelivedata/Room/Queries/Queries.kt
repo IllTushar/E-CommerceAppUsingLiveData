@@ -18,7 +18,7 @@ interface Queries {
     suspend fun deleteAllProductCache()
 
     @Query("SELECT * FROM product_cache")
-    fun getAllUser(): List<ProductCacheEntity>
+    fun getAllUser(): LiveData<List<ProductCacheEntity>>
 
     @Query("SELECT * FROM product_cache WHERE category =:category")
     fun getCategoryProduct(category: String): LiveData<List<ProductCacheEntity>>
