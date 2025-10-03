@@ -7,13 +7,14 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.e_commercelivedata.Room.Cart.CartEntity
+import com.example.e_commercelivedata.Room.MList.MListEntity
 import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
 import com.example.e_commercelivedata.Room.Queries.Queries
 import com.example.e_commercelivedata.Room.WishListEntity
 
 @Database(
-    entities = [ProductCacheEntity::class, CartEntity::class, WishListEntity::class],
-    version = 3,
+    entities = [ProductCacheEntity::class, CartEntity::class, WishListEntity::class, MListEntity::class],
+    version = 4,
     exportSchema = false
 )
 abstract class CreateRoomDB : RoomDatabase() {
@@ -61,6 +62,23 @@ abstract class CreateRoomDB : RoomDatabase() {
                 )
             }
         }
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS `mlist` (
+                `productId` INTEGER NOT NULL,
+                PRIMARY KEY(`productId`),
+                FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`) ON DELETE NO ACTION
+            )
+            """.trimIndent()
+                )
+
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_mlist_productId` ON `mlist` (`productId`)"
+                )
+            }
+        }
 
 
         fun getDatabase(context: Context): CreateRoomDB {
@@ -71,7 +89,7 @@ abstract class CreateRoomDB : RoomDatabase() {
                         CreateRoomDB::class.java,
                         "product_db"
                     )
-                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                         .build()
                 INSTANCE = instance
                 instance
