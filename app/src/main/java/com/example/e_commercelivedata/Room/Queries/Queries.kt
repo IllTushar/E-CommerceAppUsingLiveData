@@ -8,6 +8,7 @@ import androidx.room.Query
 import com.example.e_commercelivedata.Room.Cart.CartEntity
 
 import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
+import com.example.e_commercelivedata.Room.WishListEntity
 
 @Dao
 interface Queries {
@@ -32,5 +33,8 @@ interface Queries {
 
     @Query("SELECT * FROM cart")
     fun getProductsInCart(): List<CartEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertIntoWishList(wishlistItem: WishListEntity)
 
 }

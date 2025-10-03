@@ -9,10 +9,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.e_commercelivedata.Room.Cart.CartEntity
 import com.example.e_commercelivedata.Room.ProductCache.ProductCacheEntity
 import com.example.e_commercelivedata.Room.Queries.Queries
+import com.example.e_commercelivedata.Room.WishListEntity
 
 @Database(
-    entities = [ProductCacheEntity::class, CartEntity::class],
-    version = 2,
+    entities = [ProductCacheEntity::class, CartEntity::class, WishListEntity::class],
+    version = 3,
     exportSchema = false
 )
 abstract class CreateRoomDB : RoomDatabase() {
@@ -43,6 +44,24 @@ abstract class CreateRoomDB : RoomDatabase() {
                 )
             }
         }
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS `wishlist` (
+                `productId` INTEGER NOT NULL,
+                PRIMARY KEY(`productId`),
+                FOREIGN KEY(`productId`) REFERENCES `product_cache`(`productId`) ON DELETE CASCADE
+            )
+            """.trimIndent()
+                )
+
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_wishlist_productId` ON `wishlist` (`productId`)"
+                )
+            }
+        }
+
 
         fun getDatabase(context: Context): CreateRoomDB {
             return INSTANCE ?: synchronized(this) {
@@ -52,7 +71,7 @@ abstract class CreateRoomDB : RoomDatabase() {
                         CreateRoomDB::class.java,
                         "product_db"
                     )
-                        .addMigrations(MIGRATION_1_2)
+                        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                         .build()
                 INSTANCE = instance
                 instance
